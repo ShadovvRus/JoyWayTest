@@ -20,6 +20,8 @@ public:
 	class UCameraComponent* GetCameraComponent();
 	class UAttackComponent* GetAttackComponent();
 
+	TArray<FVector>& GetLastPositions() { return _arrLastPositions; }
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -30,6 +32,12 @@ private:
 
 	FTimerHandle _timerHandle{};
 
+	TArray<FVector> _arrLastPositions{};
+
+	int8 _maxBuffer = 10;
+
+	float _saveStep = 0.1f;
+	float _stepBuffer = 0.f;
 	float _deltaTime = 0.f;
 	float _baseTurnRate = 45.f;
 	float _baseLookUpRate = 45.f;
@@ -43,6 +51,8 @@ private:
 	void OnLookUp(float Axis);
 
 	void CorrectTransform();
+
+	void SavingLastPosition(float DeltaTime);
 
 	UFUNCTION(Client,Unreliable)
 		void Client_OnCorrectTransform(FTransform Transform);

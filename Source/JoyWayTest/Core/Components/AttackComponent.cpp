@@ -70,8 +70,16 @@ void UAttackComponent::Server_OnCalculateHit_Implementation(const TArray<AActor*
 	_owner->SetReplicates(false);
 
 	auto world = GetWorld();
-	const auto projectedLocation = (UKismetMathLibrary::Normal(_owner->GetVelocity()) * Ping * -2.f) + _owner->GetActorLocation();
-	auto lastPosition=_owner->GetActorTransform();
+
+	auto arrLastPositions=_owner->GetLastPositions();
+	auto a = UKismetMathLibrary::FFloor(Ping*3 / 100);
+
+	if (a > arrLastPositions.Num()-1) { a = arrLastPositions.Num()-1; }
+
+	auto remainderDivision = Ping * 3 % 100;
+	auto alphaProjectedLocation = UKismetMathLibrary::NormalizeToRange(remainderDivision, 0, 99);
+	auto projectedLocation = UKismetMathLibrary::VEase(arrLastPositions[a], arrLastPositions[a + 1], alphaProjectedLocation,EEasingFunc::Linear);
+	auto initialPosition =_owner->GetActorTransform();
 
 	FHitResult hitResult{};
 	FCollisionQueryParams collisionQueryParams{};
@@ -94,7 +102,7 @@ void UAttackComponent::Server_OnCalculateHit_Implementation(const TArray<AActor*
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("NotHit"));
 	}
 
-	_owner->SetActorTransform(lastPosition);
+	_owner->SetActorTransform(initialPosition );
 	_owner->SetReplicates(true);
 
 }

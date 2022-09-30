@@ -33,8 +33,9 @@ void ACharacterGame::BeginPlay()
 
 	if (!HasAuthority()) { return; }
 
+	for (auto i = 0; i < _maxBuffer; ++i) {_arrLastPositions.Add({});}
+
 	GetWorldTimerManager().SetTimer(_timerHandle,this,&ACharacterGame::CorrectTransform,1.f,true);
-	
 }
 
 void ACharacterGame::Tick(float DeltaTime)
@@ -48,6 +49,8 @@ void ACharacterGame::Tick(float DeltaTime)
 	const auto capsuleComponent = GetCapsuleComponent();
 
 	DrawDebugBox(GetWorld(), capsuleComponent->GetComponentLocation(),FVector(20.f,20.f,100.f),FColor::Green);
+
+	SavingLastPosition(DeltaTime);
 }
 
 void ACharacterGame::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -101,6 +104,27 @@ void ACharacterGame::OnLookUp(float Axis)
 void ACharacterGame::CorrectTransform()
 {
 	Client_OnCorrectTransform(GetActorTransform());
+}
+
+void ACharacterGame::SavingLastPosition(float DeltaTime)
+{
+	_stepBuffer += DeltaTime;
+
+	if (_stepBuffer<_saveStep) {return;}
+
+	_stepBuffer = 0.f;
+
+	for (auto i= _maxBuffer-1;i>=0;i--)
+	{
+		if (i-1>=0)
+		{
+			_arrLastPositions[i] = _arrLastPositions[i-1];
+		}
+		else
+		{
+			_arrLastPositions[0]= GetActorLocation();
+		}
+	}
 }
 
 void ACharacterGame::Client_OnCorrectTransform_Implementation(FTransform Transform)
